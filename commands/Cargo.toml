@@ -4,3 +4,7 @@ version = "0.1.0"
 authors = ["Frederic Desgreniers <fredericdesgreniers@gmail.com>"]
 
 [dependencies]
+actix = "0.7.3"
+irc = {path = "../irc"}
+cold_data = {path = "../cold_data"}
+futures = "*"

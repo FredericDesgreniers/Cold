@@ -260,6 +260,12 @@ dependencies = [
 [[package]]
 name = "commands"
 version = "0.1.0"
+dependencies = [
+ "actix 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cold_data 0.1.0",
+ "futures 0.1.23 (registry+https://github.com/rust-lang/crates.io-index)",
+ "irc 0.1.0",
+]
 
 [[package]]
 name = "cookie"
