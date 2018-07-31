@@ -1,0 +1,18 @@
+[workspace]
+[package]
+name = "cold"
+version = "0.1.0"
+authors = ["Frederic Desgreniers <fredericdesgreniers@gmail.com>"]
+
+[dependencies]
+irc = {path = "irc"}
+failure = "0.1.1"
+serde = "1.0.70"
+serde_derive = "1.0.70"
+toml = "0.4.6"
+web_frontend = {path="web_frontend"}
+dotenv = "0.13.0"
+cold_data = {path="cold_data"}
+commands = {path="commands"}
+actix = "0.7.3"
+futures = "*"

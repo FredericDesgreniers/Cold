@@ -1,0 +1,13 @@
+[package]
+name = "cold_data"
+version = "0.1.0"
+authors = ["Frederic Desgreniers <fredericdesgreniers@gmail.com>"]
+
+[dependencies]
+diesel = {version = "1.0.0", features = ["mysql", "r2d2"]}
+diesel_derives = "*"
+dotenv = "0.9.0"
+actix = "0.7.3"
+failure = "0.1.1"
+serde = "1.0.70"
+serde_derive = "1.0.70"

@@ -1,0 +1,5 @@
+[twitch]
+username = "XXXXXX"
+token = "oauth:xxxxxxxxx"
+irc_server = "irc.chat.twitch.tv:6667"
+channels = ["lirik"]
