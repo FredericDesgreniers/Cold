@@ -1597,7 +1597,9 @@ version = "0.1.0"
 dependencies = [
  "actix 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "actix-web 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cold_data 0.1.0",
  "env_logger 0.5.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures 0.1.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "tera 0.11.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

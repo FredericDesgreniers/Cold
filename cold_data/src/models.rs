@@ -18,6 +18,14 @@ pub struct Command {
     pub command: String,
 }
 
-impl<'a> Message for CreateCommand {
+impl Message for CreateCommand {
     type Result = Result<usize, Error>;
+}
+
+pub struct ListCommands {
+
+}
+
+impl Message for ListCommands {
+    type Result = Result<Vec<Command>, Error>;
 }

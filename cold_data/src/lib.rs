@@ -19,6 +19,7 @@ use std::env;
 pub mod models;
 mod schema;
 use schema::commands::dsl::*;
+use models::ListCommands;
 
 /// A database connection pool in order to properly utilize the actor system
 pub struct DbConnectionPool {
@@ -66,5 +67,17 @@ impl Handler<models::CreateCommand> for DbConnectionPool {
                 command.eq(msg.command),
             )])
             .execute(&connection)?)
+    }
+}
+
+impl Handler<ListCommands> for DbConnectionPool {
+    type Result = Result<Vec<models::Command>, Error>;
+
+    fn handle(&mut self, msg: ListCommands, ctx: &mut Self::Context) -> <Self as Handler<ListCommands>>::Result {
+        let connection = self.connection.get()?;
+
+        let result = commands.load::<models::Command>(&connection)?;
+
+        Ok(result)
     }
 }

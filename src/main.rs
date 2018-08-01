@@ -34,7 +34,7 @@ fn main() -> Result<(), Error> {
 
     let db = DbConnectionPool::connect();
 
-    let update_server = start_server();
+    let update_server = start_server(db.clone());
 
     let (reader, writer) = IrcClientBuilder::create(&config.twitch.irc_server)
         .nick(&config.twitch.username)
