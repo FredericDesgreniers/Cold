@@ -43,12 +43,7 @@ fn main() -> Result<(), Error> {
 
     let command_processor = CommandProcessor::create(db.clone(), writer.clone());
 
-    {
-        let config = config.clone();
-        let update_server = update_server.clone();
-
-        run_irc(reader, writer, command_processor, config, update_server).unwrap();
-    }
+    run_irc(reader, writer, command_processor, config.clone(), update_server.clone()).unwrap();
 
     system.run();
 
