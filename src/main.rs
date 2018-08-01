@@ -14,7 +14,7 @@ extern crate web_frontend;
 mod config;
 
 use actix::Addr;
-use cold_data::DbConnectionPool;
+use cold_data::{DbConnectionPool, CommandCache};
 use commands::CommandProcessor;
 use dotenv::dotenv;
 use failure::Error;
@@ -32,7 +32,9 @@ fn main() -> Result<(), Error> {
     dotenv().ok();
     let config = Arc::new(config::load_config_toml("config.toml").expect("Could not load config"));
 
-    let db = DbConnectionPool::connect();
+    let command_cache = CommandCache::new();
+
+    let db = DbConnectionPool::connect(command_cache.clone());
 
     let update_server = start_server(db.clone());
 
@@ -41,7 +43,8 @@ fn main() -> Result<(), Error> {
         .pass(&config.twitch.token)
         .connect()?;
 
-    let command_processor = CommandProcessor::create(db.clone(), writer.clone());
+
+    let command_processor = CommandProcessor::create(db.clone(), writer.clone(), command_cache);
 
     run_irc(reader, writer, command_processor, config.clone(), update_server.clone()).unwrap();
 

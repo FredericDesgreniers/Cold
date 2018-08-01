@@ -9,16 +9,21 @@ use futures::Future;
 use irc::client::IrcClientWriter;
 use actix::SyncArbiter;
 use actix::SyncContext;
+use cold_data::models::Command;
+use std::ops::Deref;
+use cold_data::CommandCache;
+
 
 /// Actor that processes various test commands
 pub struct CommandProcessor {
     db: Addr<DbConnectionPool>,
     irc_writer: Addr<IrcClientWriter>,
+    commands: CommandCache
 }
 
 impl CommandProcessor {
-    pub fn create(db: Addr<DbConnectionPool>, irc_writer: Addr<IrcClientWriter>) -> Addr<Self> {
-        SyncArbiter::start(3, move || Self { db: db.clone(), irc_writer: irc_writer.clone() })
+    pub fn create(db: Addr<DbConnectionPool>, irc_writer: Addr<IrcClientWriter>, commands: CommandCache) -> Addr<Self> {
+        SyncArbiter::start(3, move || Self { db: db.clone(), irc_writer: irc_writer.clone(), commands: commands.clone() })
     }
 }
 
@@ -49,6 +54,7 @@ impl Handler<MetaCommand> for CommandProcessor {
             user,
             message,
         } = msg;
+
 
         if let Some(index) = message.find(' ') {
             let (command, rest) = message.split_at(index);
@@ -91,7 +97,7 @@ impl Handler<MetaCommand> for CommandProcessor {
                         self.irc_writer.do_send(irc::client::SendChannelMessage {
                             channel,
                             message: format!(
-                                "@{} set command should be in the form: \"#set match command\"!",
+                                "@{} set command should be in the form: \"#set match_expression command\"!",
                                 user
                             ),
                         });
