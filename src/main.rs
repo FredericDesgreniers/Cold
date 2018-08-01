@@ -20,7 +20,7 @@ use dotenv::dotenv;
 use failure::Error;
 use irc::client::IrcClientReader;
 use irc::client::IrcClientWriter;
-use irc::client::{IrcClientBuilder, IrcMessage};
+use irc::client::{IrcClientBuilder, IrcMessage, SendLine};
 use std::sync::Arc;
 use std::thread;
 use web_frontend::start_server;
@@ -90,8 +90,13 @@ fn run_irc(
                             message: text.to_owned(),
                         });
                     }
+                },
+                IrcMessage::Ping(message) => {
+                    writer.do_send(SendLine(format!("PONG :{}",message)));
                 }
-                _ => {}
+                IrcMessage::Unknown(message) => {
+                    println!("{}", message);
+                }
             }
         }
     });

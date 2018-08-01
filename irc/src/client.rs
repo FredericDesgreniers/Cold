@@ -9,8 +9,11 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::net::TcpStream;
 
 lazy_static!{
-    static ref MESSAGE_CHANNEL_REGEX: Regex= { // REGEX for normal channel messages
+    static ref MESSAGE_CHANNEL_REGEX: Regex = { // REGEX for normal channel messages
         Regex::new(r"^:(?P<user>.*)!.*@.*.tmi.twitch.tv PRIVMSG #(?P<channel>.*) :(?P<message>.*)\r\n$").unwrap()
+    };
+    static ref PING_REGEX: Regex = {
+        Regex::new(r"^PING :(?P<message>.*)$").unwrap()
     };
 }
 
@@ -97,6 +100,7 @@ pub fn connect(url: &str) -> Result<(IrcClientReader, Addr<IrcClientWriter>), Ir
 #[derive(Debug)]
 pub enum IrcMessage {
     ChannelMessage(ChannelMessage),
+    Ping(String),
     Unknown(String),
 }
 
@@ -135,6 +139,11 @@ impl IrcClientReader {
                 message: captures["message"].to_owned(),
             }));
         }
+        if let Some(captures) = PING_REGEX.captures(&line) {
+            return Ok(IrcMessage::Ping(
+                captures["message"].to_owned()
+            ));
+        }
 
         Ok(IrcMessage::Unknown(line))
     }
@@ -164,7 +173,7 @@ impl IrcClientWriter {
     pub fn send_new_line(&mut self) -> Result<(), IrcError> {
         let _ = self
             .writer
-            .write(b"\n")
+            .write(b"\r\n")
             .map_err(|e| IrcError::WriteFailed(format!("{:?}", e)))?;
         Ok(())
     }
