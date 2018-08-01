@@ -11,6 +11,19 @@ pub struct CreateCommand {
     pub command: String,
 }
 
+impl Message for CreateCommand {
+    type Result = Result<usize, Error>;
+}
+
+pub struct RemoveCommand {
+    pub channel: String,
+    pub match_expr: String,
+}
+
+impl Message for RemoveCommand {
+    type Result = Result<usize, Error>;
+}
+
 #[derive(Serialize, Queryable)]
 pub struct Command {
     pub channel: String,
@@ -18,14 +31,10 @@ pub struct Command {
     pub command: String,
 }
 
-impl Message for CreateCommand {
-    type Result = Result<usize, Error>;
-}
 
-pub struct ListCommands {
-
-}
+pub struct ListCommands {}
 
 impl Message for ListCommands {
     type Result = Result<Vec<Command>, Error>;
 }
+

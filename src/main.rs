@@ -14,7 +14,7 @@ extern crate web_frontend;
 mod config;
 
 use actix::Addr;
-use cold_data::{DbConnectionPool, cache::CommandCache};
+use cold_data::{cache::CommandCache, DbConnectionPool};
 use commands::CommandProcessor;
 use dotenv::dotenv;
 use failure::Error;
@@ -43,10 +43,15 @@ fn main() -> Result<(), Error> {
         .pass(&config.twitch.token)
         .connect()?;
 
+    let command_processor = CommandProcessor::create(db.clone(), writer.clone(), update_server.clone(), command_cache);
 
-    let command_processor = CommandProcessor::create(db.clone(), writer.clone(), command_cache);
-
-    run_irc(reader, writer, command_processor, config.clone(), update_server.clone()).unwrap();
+    run_irc(
+        reader,
+        writer,
+        command_processor,
+        config.clone(),
+        update_server.clone(),
+    ).unwrap();
 
     system.run();
 
@@ -83,10 +88,6 @@ fn run_irc(
                             channel,
                             user,
                             message: text.to_owned(),
-                        });
-                    } else {
-                        update_server.do_send(web_frontend::ws_update::MassSend {
-                            message: format!("{:?}", message),
                         });
                     }
                 }

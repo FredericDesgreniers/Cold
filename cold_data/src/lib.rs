@@ -13,32 +13,32 @@ extern crate serde;
 extern crate serde_derive;
 extern crate futures;
 
-use futures::Future;
 use actix::{Actor, Addr, Handler, SyncArbiter, SyncContext};
 use diesel::mysql::MysqlConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use failure::Error;
+use futures::Future;
 use std::env;
 
-pub mod models;
 pub mod cache;
+pub mod models;
 
 mod schema;
-use schema::commands::dsl::*;
-use models::ListCommands;
-use models::Command;
 use cache::CommandCache;
+use models::ListCommands;
+use schema::commands::dsl::*;
 
 /// A database connection pool in order to properly utilize the actor system
 pub struct DbConnectionPool {
     connection: Pool<ConnectionManager<MysqlConnection>>,
-	command_cache: CommandCache
+    command_cache: CommandCache,
 }
 
 impl DbConnectionPool {
     /// Connect to database and establish a connection pool
-    pub fn connect(command_cache: CommandCache) -> Addr<DbConnectionPool> { //This would eventually become a builder if more than one cache is needed
+    pub fn connect(command_cache: CommandCache) -> Addr<DbConnectionPool> {
+        //This would eventually become a builder if more than one cache is needed
         dotenv::dotenv().ok();
         let database_url = env::var("DATABASE_URL").expect("Database url not set");
 
@@ -50,7 +50,7 @@ impl DbConnectionPool {
 
         SyncArbiter::start(3, move || Self {
             connection: pool.clone(),
-			command_cache: command_cache.clone()
+            command_cache: command_cache.clone(),
         })
     }
 }
@@ -71,7 +71,7 @@ impl Handler<models::CreateCommand> for DbConnectionPool {
 
         let connection = self.connection.get()?;
 
-        let row_change = diesel::replace_into(schema::commands::table)
+        let row_change = diesel::replace_into(commands)
             .values(&vec![(
                 channel.eq(msg.channel),
                 match_expr.eq(msg.match_expr),
@@ -79,19 +79,39 @@ impl Handler<models::CreateCommand> for DbConnectionPool {
             )])
             .execute(&connection)?;
 
-		if row_change > 0 {
-			self.command_cache.update(self)?;
-		}
+        if row_change > 0 {
+            self.command_cache.update(self)?;
+        }
 
-		Ok(row_change)
+        Ok(row_change)
+    }
+}
 
+impl Handler<models::RemoveCommand> for DbConnectionPool {
+    type Result = Result<usize, Error>;
+
+    fn handle(&mut self, msg: models::RemoveCommand, _ctx: &mut Self::Context) -> <Self as Handler<models::RemoveCommand>>::Result {
+        let connection = self.connection.get()?;
+
+        let row_change = diesel::delete(commands.filter((channel.eq(msg.channel).and(match_expr.eq(msg.match_expr)))))
+            .execute(&connection).map_err(|err| Error::from(err))?;
+
+        if row_change > 0 {
+            self.command_cache.update(self)?;
+        }
+
+        Ok(row_change)
     }
 }
 
 impl Handler<ListCommands> for DbConnectionPool {
     type Result = Result<Vec<models::Command>, Error>;
 
-    fn handle(&mut self, msg: ListCommands, ctx: &mut Self::Context) -> <Self as Handler<ListCommands>>::Result {
+    fn handle(
+        &mut self,
+        msg: ListCommands,
+        ctx: &mut Self::Context,
+    ) -> <Self as Handler<ListCommands>>::Result {
         let connection = self.connection.get()?;
 
         let result = commands.load::<models::Command>(&connection)?;
@@ -99,4 +119,3 @@ impl Handler<ListCommands> for DbConnectionPool {
         Ok(result)
     }
 }
-

@@ -13,9 +13,21 @@ class CommandsComponent extends React.Component {
         socket.onmessage = function (event) {
             console.log(event.data);
             object.state.message_count += 1;
-            object.setState(object.state)
-        }
+            object.setState(
+                {
+                    message_count: object.state.message_count + 1,
+                    commands: JSON.parse(event.data).map((command) =>
+                        <li key={command.match_expr} className="card blue-grey darken-1">
+                            <div className="card-content white-text">
+                                <div className="card-title">{command.channel}</div>
+                                Expr: <input onChange={object.onChange} type="text" className="" value={command.match_expr}/>
+                                Command: <input onChange={object.onChange} type="text" className="" value={command.command}/>
+                            </div>
+                        </li>)
+                }
+                );
 
+        };
         this.onChange = this.handleChange.bind(this);
     }
 
@@ -46,7 +58,10 @@ class CommandsComponent extends React.Component {
 
     render() {
         return (
-            <ul className="container">{this.state.commands}</ul>
+            <div>
+                <div>{this.state.message_count}</div>
+                <ul className="container">{this.state.commands}</ul>
+            </div>
         );
     }
 }

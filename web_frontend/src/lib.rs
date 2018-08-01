@@ -1,23 +1,23 @@
 extern crate actix;
 extern crate actix_web;
-extern crate env_logger;
-extern crate rand;
 extern crate cold_data;
+extern crate env_logger;
 extern crate futures;
+extern crate rand;
 
 pub mod ws_update;
 
-use futures::Future;
 use actix::Addr;
 use actix::Arbiter;
 use actix_web::fs;
+use actix_web::http;
 use actix_web::ws;
 use actix_web::HttpResponse;
 use actix_web::{server, App, HttpRequest};
+use actix_web::{AsyncResponder, Responder};
+use cold_data::{models::ListCommands, DbConnectionPool};
+use futures::Future;
 use ws_update::UpdateServer;
-use cold_data::{DbConnectionPool, models::ListCommands};
-use actix_web::{Responder, AsyncResponder};
-use actix_web::http;
 
 /// Update websocket root for the front-end
 pub fn update_route(
@@ -29,24 +29,17 @@ pub fn update_route(
 fn commands_route(req: &HttpRequest<ApiState>) -> impl Responder {
     let db: &Addr<DbConnectionPool> = &req.state().db;
 
-    db.send(ListCommands{})
+    db.send(ListCommands {})
         .from_err()
-        .and_then(|result| {
-            match result {
-                Ok(result) => {
-                    Ok(HttpResponse::Ok().json(result))
-                },
-                Err(err) => {
-                    Err(err)
-                }
-            }
+        .and_then(|result| match result {
+            Ok(result) => Ok(HttpResponse::Ok().json(result)),
+            Err(err) => Err(err),
         })
         .responder()
-
 }
 
 struct ApiState {
-    db: Addr<DbConnectionPool>
+    db: Addr<DbConnectionPool>,
 }
 
 /// Start the front-end server
@@ -66,11 +59,11 @@ pub fn start_server(db: Addr<DbConnectionPool>) -> Addr<UpdateServer> {
                     .prefix("/ws")
                     .resource("/update/", |r| r.route().f(update_route))
                     .boxed(),
-                App::with_state(ApiState {
-                    db: db.clone()
-                })
+                App::with_state(ApiState { db: db.clone() })
                     .prefix("/api")
-                    .resource("/commands/", |r| r.method(http::Method::GET).f(commands_route))
+                    .resource("/commands/", |r| {
+                        r.method(http::Method::GET).f(commands_route)
+                    })
                     .boxed(),
                 App::new()
                     .handler(
