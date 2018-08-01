@@ -7,6 +7,8 @@ use actix::{Actor, Addr, Arbiter, Context, Handler, Message};
 use cold_data::DbConnectionPool;
 use futures::Future;
 use irc::client::IrcClientWriter;
+use actix::SyncArbiter;
+use actix::SyncContext;
 
 /// Actor that processes various test commands
 pub struct CommandProcessor {
@@ -16,12 +18,12 @@ pub struct CommandProcessor {
 
 impl CommandProcessor {
     pub fn create(db: Addr<DbConnectionPool>, irc_writer: Addr<IrcClientWriter>) -> Addr<Self> {
-        Arbiter::start(|_| Self { db, irc_writer })
+        SyncArbiter::start(3, move || Self { db: db.clone(), irc_writer: irc_writer.clone() })
     }
 }
 
 impl Actor for CommandProcessor {
-    type Context = Context<Self>;
+    type Context = SyncContext<Self>;
 }
 
 pub struct MetaCommand {
