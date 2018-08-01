@@ -14,7 +14,7 @@ extern crate web_frontend;
 mod config;
 
 use actix::Addr;
-use cold_data::{DbConnectionPool, CommandCache};
+use cold_data::{DbConnectionPool, cache::CommandCache};
 use commands::CommandProcessor;
 use dotenv::dotenv;
 use failure::Error;

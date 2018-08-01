@@ -11,7 +11,7 @@ use actix::SyncArbiter;
 use actix::SyncContext;
 use cold_data::models::Command;
 use std::ops::Deref;
-use cold_data::CommandCache;
+use cold_data::cache::CommandCache;
 
 
 /// Actor that processes various test commands
